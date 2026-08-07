@@ -144,24 +144,50 @@ Both installation routes clone VERL at revision `4cd50e69b73b4ff0df750264f89e49c
 
 ## Data and model assets
 
-This repository does not redistribute MIMIC-CXR, patient metadata, model weights, checkpoints, or experiment outputs. The qualitative panel below is included only as a paper illustration.
+This repository does not redistribute MIMIC-CXR, patient metadata, model weights, checkpoints, or experiment outputs. Download them from the original custodians below and keep all patient-derived files outside Git.
 
-### Required data
+### What is needed for inference?
 
-- MIMIC-CXR-JPG images obtained under the PhysioNet data-use agreement;
-- CheXGenBench/LLaVA-Rad training and validation annotation CSVs;
-- a real-CXR reference subset for the RadDINO cache and frozen reward classifier.
+For LLM + Sana inference, you need only:
 
-### Required model references
+1. a merged JustLLMGRPO prompt-policy checkpoint (the output of `scripts/merge_checkpoint.sh`);
+2. the frozen Sana checkpoint; and
+3. a CSV containing an `annotated_prompt` column (the included `examples/prompts.csv` is a synthetic smoke-test input).
 
-| Component | Default reference |
-|---|---|
-| Initial prompt policy | `Qwen/Qwen3-4B-Thinking-2507` |
-| Frozen CXR renderer | `raman07/CheXGenBench-Models-Sana-e20` |
-| Image-text reward | `microsoft/BiomedVLP-BioViL-T` |
-| Image fidelity encoder | `microsoft/rad-dino` |
+MIMIC-CXR and the reward models are **not** required for ordinary inference.
 
-Model arguments accept either Hugging Face repository IDs or local snapshot directories. For offline execution, download all model repositories first and set `LLMSANA_LOCAL_FILES_ONLY=1`.
+### What is needed for training?
+
+Training additionally requires:
+
+- MIMIC-CXR-JPG images and metadata, downloaded from [PhysioNet MIMIC-CXR](https://physionet.org/content/mimic-cxr-jpg/2.1.0/) after completing its credentialing and data-use agreement;
+- LLaVA-Rad/CheXGenBench annotations, downloaded from the [PhysioNet LLaVA-Rad MIMIC-CXR annotation release](https://physionet.org/content/llava-rad-mimic-cxr-annotation/1.0.0/), including `LLAVARAD_ANNOTATIONS_TRAIN.csv` and `LLAVARAD_ANNOTATIONS_TEST.csv`;
+- a real-CXR reference subset (the CheXGenBench 20K training subset is sufficient) for the RadDINO cache and classifier training;
+- a locally trained 14-label CheXpert classifier; and
+- five high-memory GPUs for the reported configuration (two policy GPUs and three Sana/reward GPUs).
+
+The original benchmark code and split layout are documented in the [CheXGenBench repository](https://github.com/Raman1121/CheXGenBench). Do not commit downloaded CSVs, images, patient identifiers, or checkpoints.
+
+### Model download locations
+
+| Component | Hugging Face repository | Used by |
+|---|---|---|
+| Initial prompt policy | [`Qwen/Qwen3-4B-Thinking-2507`](https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507) | GRPO training |
+| Frozen CXR renderer | [`raman07/CheXGenBench-Models-Sana-e20`](https://huggingface.co/raman07/CheXGenBench-Models-Sana-e20) | Training and inference |
+| Image-text reward | [`microsoft/BiomedVLP-BioViL-T`](https://huggingface.co/microsoft/BiomedVLP-BioViL-T) | Training reward |
+| Image-fidelity encoder | [`microsoft/rad-dino`](https://huggingface.co/microsoft/rad-dino) | Training reward and cache |
+
+Download the models with the Hugging Face CLI (or pass the repository IDs directly when online):
+
+```bash
+pip install -U huggingface_hub
+hf download Qwen/Qwen3-4B-Thinking-2507 --local-dir models/Qwen3-4B-Thinking-2507
+hf download raman07/CheXGenBench-Models-Sana-e20 --local-dir models/CheXGenBench-Models-Sana-e20
+hf download microsoft/BiomedVLP-BioViL-T --local-dir models/BiomedVLP-BioViL-T
+hf download microsoft/rad-dino --local-dir models/rad-dino
+```
+
+For gated or credentialed repositories, accept the model license and run `huggingface-cli login` first. Model arguments accept either Hugging Face repository IDs or local snapshot directories. For offline execution, set `LLMSANA_LOCAL_FILES_ONLY=1`.
 
 Copy the path template and replace every placeholder:
 

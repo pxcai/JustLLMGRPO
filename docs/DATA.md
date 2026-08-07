@@ -1,5 +1,15 @@
 # Data preparation
 
+## Where to download the data
+
+The repository does not include clinical images or patient-derived annotations.
+
+- **MIMIC-CXR-JPG images and metadata:** download from the [PhysioNet MIMIC-CXR-JPG release](https://physionet.org/content/mimic-cxr-jpg/2.1.0/) after completing the required credentialing and data-use agreement.
+- **LLaVA-Rad/CheXGenBench annotations:** download the annotation archive from the [PhysioNet LLaVA-Rad MIMIC-CXR release](https://physionet.org/content/llava-rad-mimic-cxr-annotation/1.0.0/). The extracted split files should include `LLAVARAD_ANNOTATIONS_TRAIN.csv` and `LLAVARAD_ANNOTATIONS_TEST.csv`.
+- **CheXGenBench split/reference files:** see the [official CheXGenBench repository](https://github.com/Raman1121/CheXGenBench) for the benchmark directory layout and the 20K downstream-classification subset used to build local reward assets.
+
+Keep the downloaded files in a private data directory and point `TRAIN_CSV`, `VAL_CSV`, and the image-root variables in `configs/paths.env` to those locations. Do not commit them to this repository.
+
 ## Required annotation columns
 
 The training and validation CSV files must include:
