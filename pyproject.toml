@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "justllmgrpo"
+version = "0.1.0"
+description = "GRPO training for an LLM chest X-ray prompt policy with a frozen Sana renderer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+  {name = "Pengxiang Cai"},
+  {name = "Xiaohan Li"},
+  {name = "Anglin Liu"},
+  {name = "Qingyuan Zeng"},
+  {name = "Zexun Li"},
+  {name = "Jintai Chen"},
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: POSIX :: Linux",
+]
+
+[project.scripts]
+justllmgrpo-prepare-data = "llm_sana.data.prepare_llavarad_prompt_parquet:main"
+justllmgrpo-rewrite = "inference.rewrite_prompts:main"
+justllmgrpo-generate = "inference.generate_sana:main"
+justllmgrpo-infer = "inference.run_inference:main"
+
+[tool.setuptools.packages.find]
+include = ["llm_sana*", "inference*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
