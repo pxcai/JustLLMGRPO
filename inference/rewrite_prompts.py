@@ -37,16 +37,18 @@ def _load_transformers(model_ref: str, device: str, local_files_only: bool):
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # ``device_map="auto"`` can conservatively place a small model on CPU
+    # even when CUDA is available.  For the Transformers backend, use an
+    # explicit device so the documented ``auto`` mode actually exercises the
+    # GPU; multi-GPU placement remains available through the vLLM backend.
+    target_device = ("cuda" if torch.cuda.is_available() else "cpu") if device == "auto" else device
     kwargs = {
         "trust_remote_code": True,
         "local_files_only": local_files_only,
         "torch_dtype": torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     }
-    if device == "auto":
-        kwargs["device_map"] = "auto"
     model = AutoModelForCausalLM.from_pretrained(model_ref, **kwargs)
-    if device != "auto":
-        model = model.to(device)
+    model = model.to(target_device)
     model.eval()
     return tokenizer, model
 
